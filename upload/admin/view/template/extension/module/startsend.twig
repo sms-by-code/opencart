@@ -1,0 +1,811 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <button type="submit" form="form-startsend" data-toggle="tooltip" title="{{ button_save }}"
+                        class="btn btn-primary"><i class="fa fa-save"></i></button>
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i
+                            class="fa fa-reply"></i></a>
+            </div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}
+            <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_description }}</h3>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="button" id="balance" class="btn btn-default"
+                                    title="{{ text_refresh }}">{{ entry_balance }} {{ balance }}</button>
+                            <a href="https://app.sms.by/login" target="_blank" class="btn btn-success"
+                               title="{{ text_money_add }}">+</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-startsend"
+                      class="form-horizontal">
+
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#tab-sending" data-toggle="tab">{{ tab_sending }}</a></li>
+                        <li><a href="#tab-notice" data-toggle="tab">{{ tab_notice }}</a></li>
+                        <li><a href="#tab-gate" data-toggle="tab">{{ tab_gate }}</a></li>
+                        <li><a href="#tab-log" id="load-log" data-toggle="tab">{{ tab_log }}</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active in" id="tab-sending">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-to"></label>
+                                <div class="col-sm-10">
+                                    <p>{{ tab_sending_info }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-to">{{ entry_to }}</label>
+                                <div class="col-sm-10">
+                                    <select name="input_to" id="input-to" class="form-control">
+                                        <option value="0">{{ text_all }}</option>
+                                        <option value="4">{{ text_arbitrary }}</option>
+                                        <option value="1">{{ text_newsletter }}</option>
+                                        {% for value in customer_groups %}
+                                            <option value="2{{ value.customer_group_id }}">{{ text_all_group }} {{ value.name }}</option>
+                                            <option value="3{{ value.customer_group_id }}">{{ text_newsletter_group }} {{ value.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group hide" id="arbitrary">
+                                <label class="col-sm-2 control-label" for="input-arbitrary">
+                                    <span data-toggle="tooltip"
+                                          data-original-title="{{ help_arbitrary }}">{{ entry_arbitrary }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <input name="input_arbitrary" id="input-arbitrary" class="form-control digitOnly"
+                                           value="" placeholder="{{ entry_arbitrary }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-message">
+                                    <span data-toggle="tooltip"
+                                          data-original-title="{{ help_message }}">{{ entry_message }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="60"
+                                             aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div>{{ entry_characters }} <span id="count">0</span></div>
+                                            <div>SMS: <span id="countSMS">1</span></div>
+                                        </div>
+                                        <div class="col-sm-6 btn-group" role="group">
+                                            <button class="btn btn-default btni mas" type="button"
+                                                    data-insert="{StoreName}"
+                                                    data-target="input-message">{{ button_storename }}</button>
+                                            <button class="btn btn-default btni mas" type="button" data-insert="{Name}"
+                                                    data-target="input-message">{{ button_name }}</button>
+                                            <button class="btn btn-default btni mas" type="button"
+                                                    data-insert="{LastName}"
+                                                    data-target="input-message">{{ button_lastname }}</button>
+                                        </div>
+                                    </div>
+                                    <textarea name="input-message" rows="5" placeholder="{{ entry_message }}"
+                                              id="input-message" class="form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button class="btn btn-default" type="button" id="send">{{ button_send }}</button>
+                                </div>
+                            </div>
+                            <div id="multi-result"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-notice">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-to"></label>
+                                <div class="col-sm-10">
+                                    <p>{{ tab_notice_info }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-enabled">{{ entry_enabled }}</label>
+                                <div class="col-sm-10">
+                                    <select name="startsend-enabled" class="form-control">
+                                        {% if data['startsend-enabled'] == 0 %}
+                                            <option value="1">{{ text_enable }}</option>
+                                            <option value="0" selected="selected">{{ text_disable }}</option>
+                                        {% else %}
+                                            <option value="1" selected="selected">{{ text_enable }}</option>
+                                            <option value="0">{{ text_disable }}</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                            {% for order_status in order_statuses %}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-message-template{{ order_status.order_status_id }}">
+                                    <span data-toggle="tooltip"
+                                          data-original-title="{{ help_message_template }} {{ order_status.name }}">{{ entry_message_template }} {{ order_status.name }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <div class="btn-group-xs btn-group" role="group">
+                                        <button class="btn btn-default btni" type="button" data-insert="{OrderID}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_orderid }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Status}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_status }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{StoreName}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_storename }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{FirstName}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_name }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{LastName}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_lastname }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Comment}"
+                                                data-target="input-message-template{{ order_status.order_status_id }}">{{ button_comment }}</button>
+                                    </div>
+                                    <textarea name="startsendmessagetemplate[{{ order_status.order_status_id }}]" rows="5"
+                                              placeholder="{{ entry_message_template }} {{ order_status.name }}" id="input-message-template{{ order_status.order_status_id }}"
+                                              class="form-control">{{ data.startsendmessagetemplate[order_status.order_status_id]  }}</textarea>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-message-customer">
+                                    <span data-toggle="tooltip"
+                                          data-original-title="{{ help_message_customer }}">{{ entry_message_customer }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <div class="btn-group-xs btn-group" role="group">
+                                        <button class="btn btn-default btni" type="button" data-insert="{OrderID}"
+                                                data-target="input-message-customer">{{ button_orderid }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{StoreName}"
+                                                data-target="input-message-customer">{{ button_storename }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Total}"
+                                                data-target="input-message-customer">{{ button_total }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{FirstName}"
+                                                data-target="input-message-customer">{{ button_name }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{LastName}"
+                                                data-target="input-message-customer">{{ button_lastname }}</button>
+                                    </div>
+                                    <textarea name="startsend-message-customer" rows="5"
+                                              placeholder="{{ entry_message_customer }}" id="input-message-customer"
+                                              class="form-control">{{ data['startsend-message-customer'] }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-message-admin">
+                                    <span data-toggle="tooltip"
+                                          data-original-title="{{ help_message_admin }}">{{ entry_message_admin }}</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <div class="btn-group-xs btn-group" role="group">
+                                        <button class="btn btn-default btni" type="button" data-insert="{OrderID}"
+                                                data-target="input-message-admin">{{ button_orderid }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{StoreName}"
+                                                data-target="input-message-admin">{{ button_storename }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Total}"
+                                                data-target="input-message-admin">{{ button_total }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{FirstName}"
+                                                data-target="input-message-admin">{{ button_name }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{LastName}"
+                                                data-target="input-message-admin">{{ button_lastname }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{City}"
+                                                data-target="input-message-admin">{{ button_city }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Address}"
+                                                data-target="input-message-admin">{{ button_address }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Phone}"
+                                                data-target="input-message-admin">{{ button_phone }}</button>
+                                        <button class="btn btn-default btni" type="button" data-insert="{Comment}"
+                                                data-target="input-message-admin">{{ button_comment }}</button>
+                                    </div>
+                                    <textarea name="startsend-message-admin" rows="5"
+                                              placeholder="{{ entry_message_admin }}" id="input-message-admin"
+                                              class="form-control">{{ data['startsend-message-admin'] }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{{ entry_to }}</label>
+                                <div class="col-sm-10">
+                                    <div class="well well-sm" style="height: 150px; overflow: auto;">
+                                        <div class="checkbox">
+                                            <label>
+                                                {% if data['startsend-new-order'] is defined and data['startsend-new-order'] %}
+                                                    <input type="checkbox" name="startsend-new-order"
+                                                           checked="checked"/>
+                                                {% else %}
+                                                    <input type="checkbox" name="startsend-new-order"/>
+                                                {% endif %}
+                                                {{ text_new_order }}
+                                            </label>
+                                        </div>
+                                        {% for order_status in order_statuses %}
+                                        <div class="checkbox">
+                                            <label>
+                                                {% if data['startsend-order-change'][order_status['order_status_id']] is defined and data['startsend-order-change'][order_status['order_status_id']] %}
+                                                    <input type="checkbox" name="startsend-order-change[{{ order_status['order_status_id'] }}]"
+                                                           checked="checked"/>
+                                                {% else %}
+                                                    <input type="checkbox" name="startsend-order-change[{{ order_status['order_status_id'] }}]"/>
+                                                {% endif %}
+                                                {{ text_order_change }} {{ order_status['name'] }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                        <div class="checkbox" style="padding-left:20px">
+                                            <label>
+                                                {% if data['startsend-order-change-notice'] is defined and data['startsend-order-change-notice'] %}
+                                                    <input type="checkbox" name="startsend-order-change-notice"
+                                                           checked="checked" {{ notice }}/>
+                                                {% else %}
+                                                    <input type="checkbox"
+                                                           name="startsend-order-change-notice" {{ notice }}/>
+                                                {% endif %}
+                                                {{ text_order_change_notice }}
+                                            </label>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                {% if data['startsend-owner'] is defined and data['startsend-owner'] %}
+                                                    <input type="checkbox" name="startsend-owner" checked="checked"/>
+                                                {% else %}
+                                                    <input type="checkbox" name="startsend-owner"/>
+                                                {% endif %}
+                                                {{ text_owner }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="tab-gate">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-to"></label>
+                                <div class="col-sm-10">
+                                    <p>{{ tab_gate_info }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"
+                                       for="input-gate">{{ entry_send_gate }}</label>
+                                <div class="col-sm-10">
+                                    <select name="startsend-gate" id="startsend-gate" class="form-control">
+                                        <option value="0">{{ text_default }}</option>
+                                        {% for gate in gates %}
+                                            {% if data['startsend-gate'] is defined and data['startsend-gate'] == gate %}
+                                                <option value="{{ gate }}" selected>{{ gate }}</option>
+                                            {% else %}
+                                                <option value="{{ gate }}">{{ gate }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-apitoken">{{ entry_apitoken }} * </label>
+                                <div class="col-sm-8">
+                                    <input name="startsend-apitoken" type="text" placeholder="{{ entry_apitoken }}"
+                                           id="input-apitoken" class="form-control"
+                                           value="{{ data['startsend-apitoken'] }}" required>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-success" onclick="window.location=smsApiUrl+'user-api/token'">{{ button_get_token }}</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"
+                                       for="input-alphanames">{{ entry_alphanames }}</label>
+                                <div class="col-sm-8">
+                                    <select name="startsend-alphanames" id="startsend-alphanames" class="form-control" required>
+                                        <option value="0">{{ text_default }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#createAlphanameModal"
+                                            onclick=" $(document.getElementById('createAlphanameModal')).modal({backdrop: 'static'});">{{ button_create_alphaname }}</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-phone">
+                                    <span data-toggle="tooltip" data-original-title="{{ help_phone }}">{{ entry_phone }} * </span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <input name="startsend-phone" type="text" placeholder="{{ entry_phone }}"
+                                           id="input-phone" class="form-control digitOnly"
+                                           value="{{ data['startsend-phone'] }}" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="input-testmessage">{{ entry_testmessage }}</label>
+                                <div class="col-sm-10">
+                                    <input name="startsend-testmessage" type="text" placeholder="{{ entry_testmessage }}"
+                                           id="input-testmessage" class="form-control"
+                                           value="It's a small sms test.">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"
+                                       for="input-sender-log">{{ entry_startsend_log }} </label>
+                                <div class="col-sm-10">
+                                    <div class="checkbox">&nbsp;&nbsp;&nbsp;
+                                        {% if data['startsend-log'] is defined and data['startsend-log'] %}
+                                            <input type="checkbox" id="input-startsend-log" name="startsend-log"
+                                                   checked="checked"/>
+                                        {% else %}
+                                            <input type="checkbox" id="input-startsend-log" name="startsend-log"/>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-6 text-right">
+                                    <a href="#" target="_blank" onclick="window.location=smsServiceUrl"
+                                       class="btn btn-success">{{ button_refer }}</a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <button class="btn btn-default" type="button"
+                                            id="test_send">{{ button_test }}</button>
+                                </div>
+                            </div>
+                            <div id="result"></div>
+                        </div>
+
+                </form>
+                <div class="tab-pane" id="tab-log">
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <p>{{ tab_log_info }}</p>
+                        </div>
+                    </div>
+
+                    {% if data['startsend-log'] is defined and data['startsend-log'] %}
+                    <div class="well">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label" for="input-phone">{{ entry_phone }}</label>
+                                    <input type="phone" name="filter_phone" value="" placeholder="{{ entry_phone }}"
+                                           id="input-phone" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="input-text">{{ entry_text }}</label>
+                                    <input type="text" name="filter_text" value="" placeholder="{{ entry_text }}"
+                                           id="input-text" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-sm-1"></div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label" for="input-date-start">{{ entry_date_start }}</label>
+                                    <div class="input-group date">
+                                        <input type="text" name="filter_date_start" value=""
+                                               placeholder="{{ entry_date_start }}" data-date-format="YYYY-MM-DD"
+                                               id="input-date-start" class="form-control"/>
+                                        <span class="input-group-btn">
+								<button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
+								</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label" for="input-date-stop">{{ entry_date_stop }}</label>
+                                    <div class="input-group date">
+                                        <input type="text" name="filter_date_stop" value=""
+                                               placeholder="{{ entry_date_stop }}" data-date-format="YYYY-MM-DD"
+                                               id="input-date-stop" class="form-control"/>
+                                        <span class="input-group-btn">
+								<button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
+								</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-1"></div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="control-label" for="input-status">{{ entry_status }}</label>
+                                    <select name="filter_status" id="input-status" class="form-control">
+                                        <option value="*">*</option>
+                                        {% for key, title in statuses %}
+                                            <option value={{ key }}>{{ title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <p>&nbsp;</p>
+                                    <button type="button" id="button-filte" class="btn btn-primary pull-right"><i
+                                                class="fa fa-search"></i> {{ button_filter }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="log"></div>
+                    {% else %}
+                    <div class="alert alert-info">{{ text_log_disabled }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="createAlphanameModal" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="new-alphaname-form"
+                      action="index.php?route=extension/module/startsend/create_alphaname&user_token={{ user_token }}">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">{{ entry_alphanames }}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="new-alphaname-result"></div>
+                        <div class="form-group">
+                            <label for="alphaname_name">{{ entry_alphaname_name }}</label>
+                            <input type="text" class="form-control" name="name" id="alphaname_name"
+                                   placeholder="{{ entry_alphaname_name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_yur_name">{{ entry_alphaname_yur_name }}</label>
+                            <input type="text" class="form-control" name="yur_name" id="alphaname_yur_name"
+                                   placeholder="{{ entry_alphaname_yur_name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_unp">{{ entry_alphaname_unp }}</label>
+                            <input type="text" class="form-control" name="unp" id="alphaname_unp"
+                                   placeholder="{{ entry_alphaname_unp }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_country_id">{{ entry_alphaname_country_id }}</label>
+                            <input type="text" class="form-control" name="country_id" id="alphaname_country_id"
+                                   placeholder="{{ entry_alphaname_country_id }}" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_postcode">{{ entry_alphaname_postcode }}</label>
+                            <input type="text" class="form-control" id="alphaname_postcode" name="postcode"
+                                   placeholder="{{ entry_alphaname_postcode }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_city">{{ entry_alphaname_city }}</label>
+                            <input type="text" class="form-control" name="city" id="alphaname_city"
+                                   placeholder="{{ entry_alphaname_city }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_address">{{ entry_alphaname_address }}</label>
+                            <input type="text" class="form-control" name="address" id="alphaname_address"
+                                   placeholder="{{ entry_alphaname_address }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_name_category_id">{{ entry_alphaname_name_category_id }}</label>
+                            <select name="name_category_id" id="alphaname_name_category_id" class="form-control"
+                                    required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_traffic_type_id">{{ entry_alphaname_traffic_type_id }}</label>
+                            <select name="traffic_type_id" id="alphaname_traffic_type_id" class="form-control" required>
+                                <option value="1" selected>{{ entry_alphaname_traffic_type_id1 }}</option>
+                                <option value="2">{{ entry_alphaname_traffic_type_id2 }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="alphaname_text_example">{{ entry_alphaname_text_example }}</label>
+                            <input type="text" name="text_example" class="form-control" id="alphaname_text_example"
+                                   placeholder="{{ entry_alphaname_text_example }}" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                                data-dismiss="modal">{{ button_cancel }}</button>
+                        <button type="button" class="btn btn-primary" id="new-alphaname-submit">{{ button_save }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            window.smsServiceUrl = 'https://startsend.ru/';
+            window.smsApiUrl = 'https://app.startsend.ru/';
+
+            if ($("#startsend-gate").val()=='https://app.sms.by') {
+                window.smsServiceUrl = 'https://sms.by/'
+                window.smsApiUrl = 'https://app.sms.by/';
+            }
+
+            $("#startsend-gate").on("change", function(){
+                if (this.value == 'https://app.startsend.ru/') {
+                    window.smsServiceUrl = 'https://app.startsend.ru/';
+                    window.smsApiUrl = 'https://app.startsend.ru/';
+                } else {
+                    window.smsServiceUrl = 'https://sms.by/'
+                    window.smsApiUrl = 'https://app.sms.by/';
+                }
+            });
+
+            $("#new-alphaname-submit").on("click",function(e){
+                e.preventDefault();
+                let form = $("#new-alphaname-form");
+                let action = form.attr('action');
+                $.ajax({
+                    type: "POST",
+                    url: action,
+                    cache: false,
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.status === 'error') {
+                            $('#new-alphaname-result').html('<div class="alert alert-danger">' + response.message + '</div>');
+                        } else {
+                            $('#new-alphaname-result').html('<div class="alert alert-success">' + response.message + '</div>');
+                        }
+                    },
+                });
+            });
+
+            // Get category of alphanames
+            $.ajax({
+                type: "GET",
+                url: "index.php?route=extension/module/startsend/alphaname_category&user_token={{ user_token }}",
+                cache: false,
+                dataType: "json",
+                success: function (response) {
+                    if (response.error) {
+                        $('#result').html('<div class="alert alert-danger">' + JSON.stringify(response.error) + '</div>');
+                    } else {
+                        (response.result).forEach(function (item) {
+                            $('#alphaname_name_category_id').append(new Option(item.name, item.id));
+                        });
+                    }
+                },
+            });
+
+
+            // Get alphanames
+            $.ajax({
+                type: "GET",
+                url: "index.php?route=extension/module/startsend/alphanames&user_token={{ user_token }}",
+                cache: false,
+                dataType: "json",
+                success: function (response) {
+                    if (response.error) {
+                        $('#result').html('<div class="alert alert-danger">' + JSON.stringify(response.error) + '</div>');
+                    } else {
+                        console.log(response.result);
+                    }
+                },
+            });
+
+
+            $("#input-startsend-log").on('click change', function () {
+                if ($("#input-startsend-log").prop("checked")) {
+                    $("#help-callback").addClass('show');
+                    $("#help-callback").removeClass('hidden');
+                } else {
+                    $("#help-callback").addClass('hidden');
+                    $("#help-callback").removeClass('show');
+                }
+            });
+
+            $("input[name=startsend-order-change]").change(function () {
+                if ($(this).is(':checked')) {
+                    $("input[name=startsend-order-change-notice]").prop('disabled', false);
+                } else {
+                    $("input[name=startsend-order-change-notice]").prop('disabled', true);
+                    $("input[name=startsend-order-change-notice]").prop('checked', false);
+                }
+            });
+
+            $("#input-message").keyup(function () {
+                max = (/[а-я]/i.test($("#input-message").val())) ? 70 : 140;
+                smsc = Math.ceil($("#input-message").val().length / max);
+                sm = max * (smsc - 1);
+                var box = $(this).val();
+                var main = (box.length - sm) * 100;
+                var value = (main / max);
+                $('#count').html(box.length);
+                $('.progress-bar').animate({"width": value + '%'}, 1);
+                $('#countSMS').html(smsc);
+                return false;
+            });
+
+            $(".digitOnly").keyup(function () {
+                $(this).val($(this).val().replace(/[^\d,]/g, ''));
+            });
+
+            $("#test_send").click(function () {
+                let data = "&to=" + $('#input-phone').val() +  "&message="+$('#input-testmessage').val()+"&startsend-log="+$('#input-smsnot-log').is(':checked');
+                let btn = $(this);
+                btn.button('loading');
+                $.ajax({
+                    type: "POST",
+                    url: "index.php?route=extension/module/startsend/send&user_token={{ user_token }}",
+                    cache: false,
+                    data: data,
+                    success: function (response) {
+                        // var jsonData = JSON.parse(html);
+                        console.log(response);
+                        {#if (jsonData['error'] != 100) {#}
+                        {#    $('#result').html('<div class="alert alert-danger">' + jsonData['text'] + '</div>');#}
+                        {#} else {#}
+                        {#    $('#result').html('<div class="alert alert-success">' + jsonData['text'] + '</div>');#}
+                        {#    $('#balance').html('{{ entry_balance }} ' + jsonData['balance']);#}
+                        {#}#}
+                        btn.button('reset');
+                    },
+                });
+            });
+
+            $("#balance").click(function () {
+                let data = "&token=" + $('#input-apitoken').val();
+                $.ajax({
+                    type: "POST",
+                    url: "index.php?route=extension/module/startsend/balance&user_token={{ user_token }}",
+                    cache: false,
+                    dataType: "json",
+                    data: data,
+                    success: function (response) {
+                        console.log(response);
+                        if (response.error) {
+                            $('#result').html('<div class="alert alert-danger">' + JSON.stringify(response.error) + '</div>');
+                        } else {
+                            $('#balance').html('{{ entry_balance }} ' + parseFloat(response.result[0].balance).toFixed(2) + ' ' + response.currency);
+                        }
+                    },
+                });
+            });
+
+            $('#input-to').change(function () {
+                if ($(this).val() == 4) {
+                    $("#arbitrary").removeClass('hide');
+                    $("#arbitrary").addClass('show');
+                    $('.mas').addClass('disabled');
+                } else {
+                    $("#arbitrary").removeClass('show');
+                    $("#arbitrary").addClass('hide');
+                    $('.mas').removeClass('disabled');
+                }
+            });
+
+            $("#send").click(function () {
+                if (($('#input-to option:selected').val() == 4) && ($('#input-arbitrary').val().length < 11)) {
+                    $('#arbitrary').addClass('has-error');
+                } else {
+                    $('#arbitrary').removeClass('has-error');
+                    var data = "&startsend-sender=" + $('#input-sender').val() + "&startsend-apitoken=" + $('#input-apitoken').val() + "&message=" + $('#input-message').val() + "&to=" + $('#input-to option:selected').val() + "&arbitrary=" + $('#input-arbitrary').val();
+                    var btn = $(this);
+                    btn.button('loading');
+                    $.ajax({
+                        type: "POST",
+                        url: "index.php?route=extension/module/startsend/massend&user_token={{ user_token }}",
+                        cache: false,
+                        data: data,
+                        success: function (respond) {
+                            let output = '';
+                            try {
+                                if (respond.error) {
+                                    respond.forEach(element =>
+                                        output +='<div class="alert alert-danger">' + JSON.stringify(element) + '</div>');
+                                    $('#multi-result').html(output);
+                                } else {
+                                    respond.forEach(element =>
+                                        output +='<div class="alert alert-success">' + JSON.stringify(element) + '</div>');
+                                    $('#multi-result').html(output);
+                                }
+                            } catch (e) {
+                                $('#multi-result').html('<div class="alert alert-danger">' + JSON.stringify(respond) + '</div>');
+                            }
+                            btn.button('reset');
+                        },
+                    });
+                }
+            });
+            jQuery.fn.extend({
+                insertAtCaret: function (myValue) {
+                    return this.each(function (i) {
+                        if (document.selection) {
+                            this.focus();
+                            var sel = document.selection.createRange();
+                            sel.text = myValue;
+                            this.focus();
+                        } else if (this.selectionStart || this.selectionStart == '0') {
+                            var startPos = this.selectionStart;
+                            var endPos = this.selectionEnd;
+                            var scrollTop = this.scrollTop;
+                            this.value = this.value.substring(0, startPos) + myValue + this.value.substring(endPos, this.value.length);
+                            this.focus();
+                            this.selectionStart = startPos + myValue.length;
+                            this.selectionEnd = startPos + myValue.length;
+                            this.scrollTop = scrollTop;
+                        } else {
+                            this.value += myValue;
+                            this.focus();
+                        }
+                    });
+                }
+            });
+
+            $('.btni').click(function () {
+                var target = $(this).data('target');
+                var text = $(this).data('insert');
+                $('#' + target).insertAtCaret(text);
+            });
+
+            $('#log').delegate('.sort', 'click', function (e) {
+                e.preventDefault();
+                $('#log').load(this.href);
+            });
+
+            $('#log').delegate('.pagination a', 'click', function (e) {
+                e.preventDefault();
+                $('#log').load(this.href);
+            });
+
+            $("#load-log").click(function () {
+                $('#log').load('index.php?route=extension/module/startsend/log&user_token={{ user_token }}');
+            });
+
+            $('.date').datetimepicker({
+                pickTime: false
+            });
+
+            $('#button-filte').on('click', function (e) {
+                url = 'index.php?route=extension/module/startsend/log&user_token={{ user_token }}';
+
+                var filter_phone = $('input[name=\'filter_phone\']').val();
+
+                if (filter_phone) {
+                    url += '&filter_phone=' + encodeURIComponent(filter_phone);
+                }
+
+                var filter_text = $('input[name=\'filter_text\']').val();
+
+                if (filter_text) {
+                    url += '&filter_text=' + encodeURIComponent(filter_text);
+                }
+
+                var filter_status = $('select[name=\'filter_status\']').val();
+
+                if (filter_status != '*') {
+                    url += '&filter_status=' + encodeURIComponent(filter_status);
+                }
+
+                var filter_date_start = $('input[name=\'filter_date_start\']').val();
+
+                if (filter_date_start) {
+                    url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+                }
+
+                var filter_date_stop = $('input[name=\'filter_date_stop\']').val();
+
+                if (filter_date_stop) {
+                    url += '&filter_date_stop=' + encodeURIComponent(filter_date_stop);
+                }
+
+                $('#log').load(url);
+            });
+        });
+
+
+    </script>
+</div>
+{{ footer }}
